@@ -1,113 +1,90 @@
-import Image from 'next/image'
+"use client"
+import { SetStateAction, useState } from "react";
+import Board from './components/ui/Board';
+import calculateWinner from "./components/ui/utils/calculateWinner";
+import calculateWinningPlayer from "./components/ui/utils/calculateWinningPlayer";
 
-export default function Home() {
+export default function Game() {
+  const [history, setHistory] = useState([Array(9).fill(null)]);
+  const [currentMove, setCurrentMove] = useState(0);
+  const xIsNext = currentMove % 2 === 0;
+  const currentSquares = history[currentMove];
+  const [isAscending, setIsAscending] = useState(true);
+  const [gameOver, setGameOver] = useState<boolean>(false);
+
+  function handlePlay(nextSquares: string[]) {
+    // const nextHistory = [...history.slice(0, currentMove + 1), nextSquares];
+    const winner = calculateWinningPlayer(nextSquares);
+    const isDraw = !winner && nextSquares.every(square => square !== null);
+
+    setHistory([...history.slice(0, currentMove + 1), nextSquares]);
+    setCurrentMove(history.length);
+    setGameOver(!!winner || isDraw); // Use !!winner to convert winner to a boolean
+
+    // setHistory(nextHistory);
+    // setCurrentMove(nextHistory.length - 1);
+  }
+
+  function resetGame() {
+    setHistory([Array(9).fill(null)]);
+    setCurrentMove(0);
+    setGameOver(false);
+  }
+
+  function jumpTo(nextMove: SetStateAction<number>) {
+    setCurrentMove(nextMove);
+  }
+
+  const moves = history.map((_squares, move) => {
+    // const description = move > 0 ? "Go to move #" + move : "Go to game start";
+    // const isCurrentMove = move === currentMove;
+    // const currentDescription = "You are at move #" + move;
+    const description = move > 0 ? `Go to move #${move} (${calculateRowCol(move)})` : "Go to game start";
+
+    return (
+      // <li key={move}>
+      //   {isCurrentMove ? (
+      //     <span>{currentDescription}</span>
+      //   ) : (
+      //     <button className="btn" onClick={() => jumpTo(move)}>{description}</button>
+      //   )}
+      // </li>
+      <li key={move}>
+          <button onClick={() => jumpTo(move)}>{description}</button>
+      </li>
+    );
+  });
+
+  function calculateRowCol(move : any) {
+    const row = Math.floor((move - 1) / 3) + 1;
+    const col = (move - 1) % 3 + 1;
+    return `${row}, ${col}`;
+  }
+
+  const sortButton = (
+    <button className="btn" onClick={() => setIsAscending(!isAscending)}>
+      Sort {isAscending ? "Descending" : "Ascending"}
+    </button>
+  );
+
+  const sortedMoves = isAscending ? moves : moves.slice().reverse();
+
   return (
-    <main className="flex min-h-screen flex-col items-center justify-between p-24">
-      <div className="z-10 max-w-5xl w-full items-center justify-between font-mono text-sm lg:flex">
-        <p className="fixed left-0 top-0 flex w-full justify-center border-b border-gray-300 bg-gradient-to-b from-zinc-200 pb-6 pt-8 backdrop-blur-2xl dark:border-neutral-800 dark:bg-zinc-800/30 dark:from-inherit lg:static lg:w-auto  lg:rounded-xl lg:border lg:bg-gray-200 lg:p-4 lg:dark:bg-zinc-800/30">
-          Get started by editing&nbsp;
-          <code className="font-mono font-bold">src/app/page.tsx</code>
-        </p>
-        <div className="fixed bottom-0 left-0 flex h-48 w-full items-end justify-center bg-gradient-to-t from-white via-white dark:from-black dark:via-black lg:static lg:h-auto lg:w-auto lg:bg-none">
-          <a
-            className="pointer-events-none flex place-items-center gap-2 p-8 lg:pointer-events-auto lg:p-0"
-            href="https://vercel.com?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            By{' '}
-            <Image
-              src="/vercel.svg"
-              alt="Vercel Logo"
-              className="dark:invert"
-              width={100}
-              height={24}
-              priority
-            />
-          </a>
+    <main className="mx-auto flex flex-col items-center justify-around gap-4 ">
+      <h1 className="font-bold text-6xl mt-16 pb-24">Tic-Tac-Toe</h1>
+      <div className="game flex flex-row gap-16">
+        <div className="flex flex-col items-center gap-4">
+          <div className="game-board">
+            <Board xIsNext={xIsNext} squares={currentSquares} onPlay={handlePlay} /> 
+          </div>
+          {gameOver && <button className="btn btn-square"onClick={resetGame}>Reset Game</button>}
+        </div>
+        <div className="game-info flex gap-10">
+          <div>{sortButton}</div>
+          <ol>{sortedMoves}</ol>
         </div>
       </div>
-
-      <div className="relative flex place-items-center before:absolute before:h-[300px] before:w-[480px] before:-translate-x-1/2 before:rounded-full before:bg-gradient-radial before:from-white before:to-transparent before:blur-2xl before:content-[''] after:absolute after:-z-20 after:h-[180px] after:w-[240px] after:translate-x-1/3 after:bg-gradient-conic after:from-sky-200 after:via-blue-200 after:blur-2xl after:content-[''] before:dark:bg-gradient-to-br before:dark:from-transparent before:dark:to-blue-700 before:dark:opacity-10 after:dark:from-sky-900 after:dark:via-[#0141ff] after:dark:opacity-40 before:lg:h-[360px] z-[-1]">
-        <Image
-          className="relative dark:drop-shadow-[0_0_0.3rem_#ffffff70] dark:invert"
-          src="/next.svg"
-          alt="Next.js Logo"
-          width={180}
-          height={37}
-          priority
-        />
-      </div>
-
-      <div className="mb-32 grid text-center lg:max-w-5xl lg:w-full lg:mb-0 lg:grid-cols-4 lg:text-left">
-        <a
-          href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Docs{' '}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
-            Find in-depth information about Next.js features and API.
-          </p>
-        </a>
-
-        <a
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Learn{' '}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
-            Learn about Next.js in an interactive course with&nbsp;quizzes!
-          </p>
-        </a>
-
-        <a
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Templates{' '}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
-            Explore starter templates for Next.js.
-          </p>
-        </a>
-
-        <a
-          href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Deploy{' '}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
-            Instantly deploy your Next.js site to a shareable URL with Vercel.
-          </p>
-        </a>
-      </div>
     </main>
-  )
+    
+  );
 }

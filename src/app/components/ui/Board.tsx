@@ -16,23 +16,10 @@ export default function Board({ xIsNext, squares, onPlay }: BoardData) {
     }
     const nextSquares = squares.slice();
     nextSquares[i] = xIsNext ? "X" : "O";
-
-    const winner = calculateWinner(nextSquares);
-    // Changes winning squares to say winner: don't want
-    // if (winner) {
-    //   const [a, b, c] = winner;
-    //   nextSquares[a] = nextSquares[b] = nextSquares[c] = "winner";
-    // }
-
     onPlay(nextSquares);
   }
-  const winner = calculateWinningPlayer(squares);
-  // const winner = calculateWinner(squares);
-  // let status;
-  // status = winner
-  //   ? "Winner: " + winner
-  //   : "Next player: " + (xIsNext ? "X" : "O");
 
+  const winner = calculateWinningPlayer(squares);
   const winnerSquares = calculateWinner(squares);
   let status;
   status = winnerSquares;
@@ -61,7 +48,6 @@ export default function Board({ xIsNext, squares, onPlay }: BoardData) {
             isWinnerSquare={isWinnerSquare}
           />
         </div>
-        
       );
     }
     boardRows.push(
